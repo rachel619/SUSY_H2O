@@ -113,7 +113,7 @@ range(RF_auc@summary_table$auc)
 
 ```
 
-Eight models tested. The highest auc is 0.8604350414577883, with max_depth = 20, mtries = 3, ntrees =50.
+Eight models tested. The highest auc is RF with max_depth = 20, mtries = 3, ntrees =50.
 
 ```{r}
 system.time({
@@ -129,7 +129,6 @@ s_2 <- h2o.auc(h2o.performance(model_RF, SUSY_test))
 s2 <- h2o.auc(h2o.performance(model_RF, SUSY_test))
 s2
 ```
-The final RF model gives auc = 0.858 on test data.
 
 
 ## Gradient Boosting Model (GBM)
@@ -185,7 +184,6 @@ a
 ```
 Based on AUC comparison. Random Forest model with max_depth = 20, mtries = 3, ntrees =50 is the best model.
 
-The final model has a auc = 0.858.
 
 ```{r LR-ROC, echo = FALSE}
 
@@ -195,4 +193,5 @@ plot(h2o.performance(model_RF, SUSY_test))
 
 plot(h2o.performance(model_GBM, SUSY_test))
 ```
+
 Notice: Need to take a further look at the GBM (ROC curve).
