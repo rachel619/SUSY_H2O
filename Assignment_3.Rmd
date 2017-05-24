@@ -82,17 +82,13 @@ h2o.auc(h2o.performance(model_LR, SUSY_valid))
 
 model_LR
 
-h2o.auc(h2o.performance(model_LR, SUSY_test))
+s_1 <- h2o.auc(h2o.performance(model_LR, SUSY_test))
 
+s1 <- h2o.auc(h2o.performance(model_LR, SUSY_test))
+s1
 ```
-Among all the LR models. lambda = 0.0 will give largest auc for the validation dataset. The final choosen LR model has auc = 0.834163 on test data set.
+Among all the LR models. lambda = 0.0 will give largest auc for the validation dataset. The final choosen LR model has auc = 0.8327407 on test data set.
 
-
-```{r LR-ROC, echo = FALSE}
-plot(h2o.performance(model_LR, SUSY_train))
-
-plot(h2o.performance(model_LR, SUSY_test))
-```
 
 ## Random Forest (RF)
 
@@ -106,15 +102,35 @@ Hyperparameters to try:
 hyper_params <- list( ntrees = c(20,50), max_depth = c(10, 20), mtries = c(3,5))
 
 RF_grid <- h2o.grid("randomForest",x = x, y = y, training_frame = SUSY_train, 
-                 validation_frame = SUSY_valid, 
+                 validation_frame = SUSY_valid, nfolds = 0,
                  grid_id = "SUSY_RF_grid", hyper_params = hyper_params,
                  search_criteria = list(strategy = "Cartesian"),
-                 stopping_metric = "AUC", stopping_tolerance = 0, stopping_rounds = 4)
+                 stopping_metric = "AUC", stopping_tolerance = 0, stopping_rounds = 3)
 
 RF_auc <- h2o.getGrid(RF_grid@grid_id, sort_by="auc", decreasing = TRUE)
+RF_auc
 range(RF_auc@summary_table$auc)
 
 ```
+
+Eight models tested. The highest auc is 0.8604350414577883, with max_depth = 20, mtries = 3, ntrees =50.
+
+```{r}
+system.time({
+  model_RF <- h2o.randomForest(x = x, y = y, training_frame = SUSY_train, 
+                 validation_frame = SUSY_valid, nfolds = 0,
+                 max_depth = 20, mtries = 3, ntrees =50)
+})
+
+model_RF
+
+s_2 <- h2o.auc(h2o.performance(model_RF, SUSY_test))
+
+s2 <- h2o.auc(h2o.performance(model_RF, SUSY_test))
+s2
+```
+The final RF model gives auc = 0.8577427 on test data.
+
 
 ## Gradient Boosting Model (GBM)
 1. max_depth = c(5, 10)
@@ -122,18 +138,61 @@ range(RF_auc@summary_table$auc)
 2. learn_rate = c(0.1, 0.2)
 
 3. early stopping for determining the number of trees
+
+(If not using early stopping and overtraining (increasing the number of iterations/trees), the process time will be too large. In fact, I originally do GBM without early stopping with a larger dataset. It took a great amount of running time and H2O ended up not having enough memory to run all the codes.)
 ```{r GBM}
 hyper_params = list(max_depth = c(5, 10),learn_rate = c(0.1, 0.2))
 
 GBM_grid <- h2o.grid("gbm",x = x, y = y, training_frame = SUSY_train, 
-                 validation_frame = SUSY_valid, 
+                 validation_frame = SUSY_valid, nfolds = 0,
                  grid_id = "SUSY_GBM_grid", hyper_params = hyper_params,
                  search_criteria = list(strategy = "Cartesian"),
-                  stopping_tolerance = 0.001,stopping_rounds = 3, 
-                 score_tree_interval = 10, ntrees = 100
+                 stopping_tolerance = 0.02, stopping_rounds = 3, 
+                 score_tree_interval = 10
 )
 
 GBM_auc <- h2o.getGrid(GBM_grid@grid_id, sort_by="auc", decreasing = TRUE)
+GBM_auc
 range(GBM_auc@summary_table$auc)
 ```
 
+Four models tested. The highest auc is 0.8645064947023698, with learn_rate = 0.1, max_depth = 1.
+
+```{r}
+system.time({
+  model_GBM <- h2o.gbm(x = x, y = y, training_frame = SUSY_train, 
+                 validation_frame = SUSY_valid, 
+                 max_depth = 1, learn_rate = 0.1)    
+})
+
+
+model_GBM
+
+s_3 <- h2o.auc(h2o.performance(model_GBM, SUSY_test))
+
+s3 <- h2o.auc(h2o.performance(model_GBM, SUSY_test))
+s3
+```
+The final GBM give auc = 0.8254005 on test data.
+
+## AUC/ ROC Comparation
+```{r}
+
+a <-as.data.frame(cbind(c("LR", "RF", "GBM"),c(s_1,s_2,s_3),c(s1,s2,s3)))
+names(a) <- c("Model", "AUC on valid", "AUC on test")
+a
+
+```
+Based on AUC comparison. Random Forest model with max_depth = 20, mtries = 3, ntrees =50 is the best model.
+
+The final model has a auc = 0.857742684585674.
+
+```{r LR-ROC, echo = FALSE}
+
+plot(h2o.performance(model_LR, SUSY_test))
+
+plot(h2o.performance(model_RF, SUSY_test))
+
+plot(h2o.performance(model_GBM, SUSY_test))
+```
+Notice: Need to take a further look at the GBM (ROC curve).
