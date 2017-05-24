@@ -129,7 +129,7 @@ s_2 <- h2o.auc(h2o.performance(model_RF, SUSY_test))
 s2 <- h2o.auc(h2o.performance(model_RF, SUSY_test))
 s2
 ```
-The final RF model gives auc = 0.8577427 on test data.
+The final RF model gives auc = 0.858 on test data.
 
 
 ## Gradient Boosting Model (GBM)
@@ -185,7 +185,7 @@ a
 ```
 Based on AUC comparison. Random Forest model with max_depth = 20, mtries = 3, ntrees =50 is the best model.
 
-The final model has a auc = 0.857742684585674.
+The final model has a auc = 0.858.
 
 ```{r LR-ROC, echo = FALSE}
 
