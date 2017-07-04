@@ -194,4 +194,4 @@ plot(h2o.performance(model_RF, SUSY_test))
 plot(h2o.performance(model_GBM, SUSY_test))
 ```
 
-Notice: Need to take a further look at the GBM (ROC curve).
+Notice: Need to take a further look at the GBM (ROC curve). Continue...
